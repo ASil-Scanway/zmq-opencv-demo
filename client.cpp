@@ -11,6 +11,7 @@
 
 #include <nlohmann/json.hpp>
 
+using namespace std::chrono_literals;
 
 int main() {
     // initialize the zmq context with a single IO thread
@@ -28,6 +29,7 @@ int main() {
     cv::Mat currentImage;
 
     for (auto request_num = 0; request_num < 10; ++request_num) {
+        std::cout << "trying to receive" << std::endl;
         zmq::recv_multipart(subscriber, std::back_inserter(msgs));
 
         const zmq::message_t &metadataMsg = msgs.front();
@@ -35,24 +37,15 @@ int main() {
 
 
         nlohmann::json metadata = nlohmann::json::parse(metadataMsg.to_string());
-        const int imgType = metadata.at("type");
-        const int imgWidth = metadata.at("width");
-        const int imgHeight = metadata.at("height");
-
         std::cout << "Received: " << std::endl << metadata << std::endl;
-        void *dataPointer = (void *) imageMsg.data<uchar>();
 
-        currentImage = cv::Mat(
-                imgWidth,
-                imgHeight,
-                imgType,
-                dataPointer
-        );
+        cv::Mat foo(1, imageMsg.size(), CV_8UC1, (void *) imageMsg.data());
+        cv::Mat decoded = cv::imdecode(foo, cv::IMREAD_COLOR);
 
-        msgs.clear();
+        cv::imshow("Image", decoded);
+        cv::waitKey(0);
 
-        cv::imshow("Image", currentImage);
-        cv::waitKey(1000);
+        std::this_thread::sleep_for(1s);
     }
 
     return 0;

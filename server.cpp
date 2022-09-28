@@ -25,9 +25,6 @@ int main(int argc, char *argv[]) {
     cv::Mat img = cv::imread(imgPath.string());
     cv::Mat dsImg;
 
-    cv::resize(img, dsImg, cv::Size(), 0.01, 0.01);
-
-
     zmq::context_t ctx;
     zmq::socket_t sock(ctx, zmq::socket_type::pub);
 
@@ -47,11 +44,11 @@ int main(int argc, char *argv[]) {
         messages.emplace_back(metadata.dump(4));
 
         std::vector<uchar> imageBuffer;
-        cv::imencode(".tif", dsImg, imageBuffer);;
-        messages.emplace_back(imageBuffer.begin(), imageBuffer.end());
+        cv::imencode(".tif", img, imageBuffer);;
+        messages.emplace_back(imageBuffer);
 
         zmq::send_multipart(sock, messages);
-
+        std::cout << "Sent message: " << std::to_string(counter) << std::endl;
         imageBuffer.clear();
         std::this_thread::sleep_for(1s);
         counter++;
