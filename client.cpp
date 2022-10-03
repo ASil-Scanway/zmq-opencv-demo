@@ -19,33 +19,42 @@ int main() {
 
     // construct a REQ (request) socket and connect to interface
     zmq::socket_t subscriber{context, zmq::socket_type::sub};
+//	subscriber.set(zmq::sockopt::rcvhwm, 1);
+	subscriber.set(zmq::sockopt::conflate, 1);
+
     subscriber.connect("tcp://localhost:5555");
 
-    const std::string filter = "{";
+    const std::string filter = "";
     subscriber.set(zmq::sockopt::subscribe, filter);
 
     std::vector<zmq::message_t> msgs;
 
     cv::Mat currentImage;
 
-    for (auto request_num = 0; request_num < 10; ++request_num) {
-        std::cout << "trying to receive" << std::endl;
-        zmq::recv_multipart(subscriber, std::back_inserter(msgs));
-
-        const zmq::message_t &metadataMsg = msgs.front();
-        const zmq::message_t &imageMsg = msgs.back();
+    for (auto request_num = 0; request_num < 100; ++request_num) {
+	    std::chrono::steady_clock::time_point ts1 = std::chrono::steady_clock::now();
 
 
-        nlohmann::json metadata = nlohmann::json::parse(metadataMsg.to_string());
-        std::cout << "Received: " << std::endl << metadata << std::endl;
 
-        cv::Mat foo(1, imageMsg.size(), CV_8UC1, (void *) imageMsg.data());
+
+
+		zmq::message_t msg;
+	    subscriber.recv(msg, zmq::recv_flags::none);
+
+        cv::Mat foo(1, msg.size(), CV_8UC1, (void *) msg.data());
         cv::Mat decoded = cv::imdecode(foo, cv::IMREAD_COLOR);
 
-        cv::imshow("Image", decoded);
-        cv::waitKey(0);
+	    std::chrono::steady_clock::time_point ts2 = std::chrono::steady_clock::now();
 
-        std::this_thread::sleep_for(1s);
+	    std::cout << "Single subscribe msg time: " << std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(
+			    ts2 - ts1
+	    ).count()) << std::endl;
+
+
+//        cv::imshow("Image", decoded);
+//        cv::waitKey(1);
+
+//        std::this_thread::sleep_for(1s);
     }
 
     return 0;

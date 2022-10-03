@@ -1,4 +1,15 @@
 cmake_minimum_required(VERSION 3.22)
+
+if (DEFINED ENV{VCPKG_ROOT})
+    message("Using global vcpkg")
+    string(REPLACE "\\" "/" VCPKG_ROOT_FORMATED $ENV{VCPKG_ROOT})
+    set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT_FORMATED}/scripts/buildsystems/vcpkg.cmake")
+else ()
+    message("Using vcpkg as project's submodule")
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/lib/vcpkg/scripts/buildsystems/vcpkg.cmake")
+endif ()
+include(${CMAKE_TOOLCHAIN_FILE})
+
 project(zeromq)
 
 set(CMAKE_CXX_STANDARD 11)

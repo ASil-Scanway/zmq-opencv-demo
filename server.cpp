@@ -34,9 +34,9 @@ int main(int argc, char *argv[]) {
     while (true) {
         nlohmann::json metadata = {
                 {"key",       "cam::left::" + std::to_string(counter)},
-                {"height",    dsImg.size().height},
-                {"width",     dsImg.size().width},
-                {"type",      dsImg.type()},
+                {"height",    img.size().height},
+                {"width",     img.size().width},
+                {"type",      img.type()},
                 {"extension", ".tif"}
         };
 
